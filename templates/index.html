@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Task Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div>
+        <p class="eyebrow">STUDENT PRODUCTIVITY</p>
+        <h1>My Task Manager</h1>
+        <p class="sub">Organize assignments, deadlines and study work.</p>
+      </div>
+      <span class="tag">Lab Project</span>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="notice {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <section class="panel">
+      <h2>Add a new task</h2>
+      <form action="{{ url_for('add_task') }}" method="post" class="task-form">
+        <input name="title" placeholder="Task / assignment title" required>
+        <input name="subject" placeholder="Subject" required>
+        <input name="due_date" type="date" aria-label="Due date">
+        <select name="priority">
+          <option>Low</option><option selected>Medium</option><option>High</option>
+        </select>
+        <button type="submit">Add task</button>
+      </form>
+    </section>
+
+    <section class="task-area">
+      <div class="task-heading">
+        <h2>Your tasks</h2>
+        <nav>
+          <a class="{{ 'active' if selected == 'All' else '' }}" href="/">All</a>
+          <a class="{{ 'active' if selected == 'Pending' else '' }}" href="/?status=Pending">Pending</a>
+          <a class="{{ 'active' if selected == 'Completed' else '' }}" href="/?status=Completed">Completed</a>
+        </nav>
+      </div>
+      {% if tasks %}
+        <div class="task-list">
+          {% for task in tasks %}
+          <article class="task {{ 'done' if task.status == 'Completed' else '' }}">
+            <div class="task-info">
+              <h3>{{ task.title }}</h3>
+              <p>{{ task.subject }} · Due: {{ task.due_date or 'Not set' }}</p>
+              <div class="meta"><span class="priority {{ task.priority|lower }}">{{ task.priority }} priority</span><span>{{ task.status }}</span></div>
+            </div>
+            <div class="actions">
+              {% if task.status != 'Completed' %}
+              <form method="post" action="{{ url_for('complete_task', task_id=task.id) }}"><button class="secondary">Complete</button></form>
+              {% endif %}
+              <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}" onsubmit="return confirm('Delete this task?')"><button class="danger">Delete</button></form>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">No tasks here yet. Add your first assignment above.</div>
+      {% endif %}
+    </section>
+    <footer>Student Task Management System · Built with Flask, SQLite and GitHub Actions</footer>
+  </main>
+</body>
+</html>
